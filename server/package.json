@@ -1,0 +1,17 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Hack2Impact Backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "\"echo \\\"no tests added\\\" && exit 1\""
+  },
+  "author": "Alex's Org",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
