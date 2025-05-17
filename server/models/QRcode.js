@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const qrSchema = new mongoose.Schema({
   email:    { type: String, required: true, unique: true },
   locations: [{ type: String, required: true }],
-  scannedAt: { type: Date, default: Date.now },
+  lastScannedAt: { type: Date, default: Date.now },
   driver: {type: String}
 });
 
