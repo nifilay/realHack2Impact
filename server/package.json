@@ -4,12 +4,16 @@
   "description": "Hack2Impact Backend",
   "main": "index.js",
   "scripts": {
-    "test": "\"echo \\\"no tests added\\\" && exit 1\""
+    "test": "\"echo \\\"no tests added\\\" && exit 1\"",
+    "start": "nodemon index.js"
   },
   "author": "Alex's Org",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "index.js": "^0.0.3",
+    "mongoose": "^8.15.0",
+    "package.json": "^2.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
