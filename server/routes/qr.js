@@ -1,0 +1,8 @@
+import express from 'express';
+import QRCode from 'qrcode';
+
+const router = express.Router();
+
+router.post('/create', async(req, res) => {
+    const {email, 
+})

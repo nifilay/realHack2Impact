@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors     from 'cors';
 import dotenv   from 'dotenv';
 import authRoutes from './routes/auth.js';
+import qrRoutes from './routes/qr.js';
 
 dotenv.config(); // 1) Load .env
 
@@ -23,6 +24,7 @@ const app = express();
 // 4) Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/qr', qrRoutes);
 
 // 5) Mount auth routes
 app.use('/auth', authRoutes);
