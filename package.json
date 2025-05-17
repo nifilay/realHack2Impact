@@ -16,8 +16,10 @@
     "axios": "^1.9.0",
     "expo": "~53.0.9",
     "expo-barcode-scanner": "^13.0.1",
+    "expo-linear-gradient": "^14.1.4",
     "expo-status-bar": "~2.2.3",
     "mongodb": "^6.16.0",
+    "nativewind": "^4.1.23",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.2",
@@ -29,7 +31,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@react-native-community/cli": "latest"
+    "@react-native-community/cli": "latest",
+    "tailwindcss": "^3.4.17"
   },
   "private": true
 }
