@@ -12,40 +12,43 @@ import {
   Image,
   StyleSheet,
   useWindowDimensions,
-  Linking,
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API } from '../../App'; // adjust path if needed
+import { API } from '../../App';
 
-const SLOGANS = [
-  'Restore Dignity',
-  'Empower Lives',
-  'Join the Mission',
-];
+const SLOGANS = ['Restore Dignity', 'Empower Lives', 'Join the Mission'];
 
 export default function LoginScreen({ navigation, onLogin }) {
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [loading, setLoading]     = useState(false);
+  const [emailFocused, setEmailFocused]       = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
-  // animated slogan
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [idx, setIdx] = useState(0);
   const { width } = useWindowDimensions();
   const isSmall = width < 350;
 
+  // button press scale
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const onPressIn  = () => Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true }).start();
+  const onPressOut = () => Animated.spring(scaleAnim, { toValue: 1,    useNativeDriver: true }).start();
+
+  // slogan fade
   useEffect(() => {
     const cycle = Animated.sequence([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 600,  useNativeDriver: true }),
       Animated.delay(1400),
-      Animated.timing(fadeAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 0, duration: 600,  useNativeDriver: true }),
     ]);
     Animated.loop(cycle).start();
-  }, [fadeAnim]);
+  }, []);
 
+  // rotate slogans
   useEffect(() => {
     const id = setInterval(() => setIdx(i => (i + 1) % SLOGANS.length), 2600);
     return () => clearInterval(id);
@@ -53,7 +56,7 @@ export default function LoginScreen({ navigation, onLogin }) {
 
   const login = async () => {
     if (!email || !password) {
-      return Alert.alert('Please enter both email and password');
+      return Alert.alert('Validation', 'Please enter both email and password.');
     }
     try {
       setLoading(true);
@@ -71,12 +74,32 @@ export default function LoginScreen({ navigation, onLogin }) {
 
   return (
     <LinearGradient
-      colors={['#ffd6e8', '#d6c8ff']}
-      start={[0, 0]}
-      end={[1, 1]}
+      colors={['#fffdf9', '#f3f1ee']}
+      start={[0, 0]} end={[1, 1]}
       style={styles.background}
     >
+      {/* subtle background circles */}
+      <View style={styles.circleTop} />
+      <View style={styles.circleBottom} />
+
       <SafeAreaView style={styles.safe}>
+        {/* Top Bar */}
+        <View style={styles.topBar}>
+          <Image
+            source={require('../../assets/clothes.png')}
+            style={styles.topLogo}
+            resizeMode="contain"
+          />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Register')}
+            style={styles.topButton}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.topButtonText}>Create Account</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Header */}
         <View style={styles.headerContainer}>
           <Text style={styles.header}>Welcome Back</Text>
           <Animated.Text style={[styles.slogan, { opacity: fadeAnim }]}>
@@ -84,131 +107,167 @@ export default function LoginScreen({ navigation, onLogin }) {
           </Animated.Text>
         </View>
 
+        {/* Card */}
         <View style={styles.card}>
-          {/* Logo */}
-          <Image
-            source={require('../../assets/logo.png')}
+          <View style={styles.imageWrapper}>
+            <Image
+              source={require('../../assets/clothes.png')}
+              style={styles.cardImage}
+            />
+          </View>
+
+          {/* Email */}
+          <TextInput
+            placeholder="Email"
+            placeholderTextColor="#999"
+            keyboardType="email-address"
+            autoCapitalize="none"
             style={[
-              styles.logo,
-              isSmall ? styles.logoSmall : styles.logoLarge
+              styles.input,
+              emailFocused && styles.inputFocused
             ]}
-            resizeMode="contain"
+            value={email}
+            onChangeText={setEmail}
+            onFocus={() => setEmailFocused(true)}
+            onBlur={() => setEmailFocused(false)}
           />
 
-          {/* Inputs */}
-          <View style={styles.inputGroup}>
-            <TextInput
-              placeholder="Email"
-              placeholderTextColor="#999"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-            />
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#999"
-              secureTextEntry
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-            />
-          </View>
+          {/* Password */}
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#999"
+            secureTextEntry
+            style={[
+              styles.input,
+              passwordFocused && styles.inputFocused
+            ]}
+            value={password}
+            onChangeText={setPassword}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
+          />
 
-          {/* Button */}
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={login}
-            disabled={loading}
-          >
-            <LinearGradient
-              colors={loading ? ['#cccccc','#aaaaaa'] : ['#89f7fe','#66a6ff']}
-              start={[0, 0]}
-              end={[1, 1]}
-              style={styles.buttonGradient}
+          {/* Sign In */}
+          <Animated.View style={{ transform: [{ scale: scaleAnim }], width: '100%' }}>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPressIn={onPressIn}
+              onPressOut={onPressOut}
+              onPress={login}
+              disabled={loading}
+              activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>
-                {loading ? 'Signing In…' : 'Sign In'}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Links */}
-          <View style={styles.links}>
-            <Text style={styles.linkText}>New here?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.linkAction}>Create Account</Text>
+              <LinearGradient
+                colors={loading ? ['#cccccc', '#aaaaaa'] : ['#89f7fe', '#66a6ff']}
+                start={[0, 0]}
+                end={[1, 1]}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? 'Signing In…' : 'Sign In'}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
-          </View>
-        </View>
+          </Animated.View>
 
-        {/* Footer */}
-        <TouchableOpacity onPress={() => Linking.openURL('https://projectropa.org')}>
-          <Text style={styles.footerLink}>Visit our website</Text>
-        </TouchableOpacity>
+          {/* Footer Link */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Scan')}
+            style={styles.footerLinkWrap}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.footerLinkText}>
+              Have a QR? Scan Donation
+            </Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
+  background: { flex: 1, position: 'relative' },
+  circleTop: {
+    position: 'absolute',
+    width: 200, height: 200,
+    backgroundColor: '#89f7fe33',
+    borderRadius: 100,
+    top: -80, left: -80,
+  },
+  circleBottom: {
+    position: 'absolute',
+    width: 300, height: 300,
+    backgroundColor: '#66a6ff22',
+    borderRadius: 150,
+    bottom: -120, right: -100,
   },
   safe: {
     flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingTop: Platform.OS === 'android' ? 32 : 0,
     paddingHorizontal: 20,
-    paddingBottom: 24,
   },
-  headerContainer: {
+  topBar: {
+    height: 50,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 24,
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
+  topLogo: { width: 36, height: 36 },
+  topButton: {
+    paddingVertical: 6, paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: '#66a6ff20',
+  },
+  topButtonText: {
+    color: '#66a6ff',
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  headerContainer: { alignItems: 'center', marginBottom: 24 },
   header: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#222',
-    marginBottom: 8,
+    color: '#66a6ff',
+    letterSpacing: 0.5,
   },
   slogan: {
-    fontSize: 18,
+    fontSize: 16,
     fontStyle: 'italic',
-    color: '#555',
+    color: '#89f7fe',
+    marginTop: 4,
   },
   card: {
-    width: '100%',
-    maxWidth: 380,
     backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+    width: '90%',
+    alignSelf: 'center',
+    borderRadius: 40,
+    padding: 24,
     alignItems: 'center',
-    // iOS shadow
+    marginVertical: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
-    // Android
     elevation: 6,
   },
-  logo: {
-    marginBottom: 24,
+  imageWrapper: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 6,
+    marginBottom: 16,
+    transform: [{ rotate: '-3deg' }],
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 4,
   },
-  logoSmall: {
-    width: 80,
-    height: 80,
-  },
-  logoLarge: {
-    width: 120,
-    height: 120,
-  },
-  inputGroup: {
-    width: '100%',
-    marginBottom: 24,
+  cardImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
   },
   input: {
     width: '100%',
@@ -219,16 +278,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     color: '#333',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  inputFocused: {
+    borderColor: '#66a6ff',
   },
   button: {
     width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginTop: 8,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
+  buttonDisabled: { opacity: 0.6 },
   buttonGradient: {
     paddingVertical: 16,
     alignItems: 'center',
@@ -237,24 +299,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  links: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#777',
-    marginRight: 6,
-    fontSize: 15,
-  },
-  linkAction: {
+  footerLinkWrap: { marginTop: 16 },
+  footerLinkText: {
     color: '#66a6ff',
     fontSize: 15,
-    fontWeight: '600',
-  },
-  footerLink: {
-    color: '#999',
     textDecorationLine: 'underline',
-    fontSize: 14,
   },
 });
