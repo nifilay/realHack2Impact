@@ -1,4 +1,4 @@
-// src/screens/LoginScreen.js
+// src/screens/RegisterScreen.js
 import React, { useState } from 'react';
 import {
   SafeAreaView,
@@ -12,23 +12,23 @@ import {
 import axios from 'axios';
 import { API } from '../../App';
 
-export default function LoginScreen({ navigation, onLogin }) {
+export default function RegisterScreen({ navigation, onLogin }) {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
 
-  const login = async () => {
+  const register = async () => {
     try {
-      const res = await axios.post(`${API}/auth/login`, { email, password });
+      const res = await axios.post(`${API}/auth/register`, { email, password });
       const { token } = res.data;
       onLogin(token);
     } catch (err) {
-      Alert.alert('Login failed', err.response?.data?.error || err.message);
+      Alert.alert('Registration failed', err.response?.data?.error || err.message);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Sign In</Text>
+      <Text style={styles.title}>Create Account</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -44,11 +44,11 @@ export default function LoginScreen({ navigation, onLogin }) {
         value={password}
         onChangeText={setPassword}
       />
-      <Button title="Sign In" onPress={login} />
+      <Button title="Sign Up" onPress={register} />
       <View style={{ height: 12 }} />
       <Button
-        title="Create Account"
-        onPress={() => navigation.navigate('Register')}
+        title="Have an account? Sign In"
+        onPress={() => navigation.navigate('Login')}
       />
     </SafeAreaView>
   );
