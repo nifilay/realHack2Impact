@@ -1,48 +1,78 @@
 // App.js
+
 import 'react-native-gesture-handler';
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 
-import LoginScreen    from './src/screens/LoginScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-import HomeScreen     from './src/screens/HomeScreen';
+import LoginScreen     from './src/screens/LoginScreen';
+import RegisterScreen  from './src/screens/RegisterScreen';
+import DonationGeneratorScreen from './src/screens/DonationGeneratorScreen';
+import ScanDonationScreen      from './src/screens/ScanDonationScreen';
 
-// pick your API host here:
-export const API = 'http://localhost:3000'; 
+export const API = 'http://localhost:3000'; // or your server URL
 
 const AuthStack = createNativeStackNavigator();
 const MainStack = createNativeStackNavigator();
 
-export default function App() {
-  const [token, setToken]   = useState(null);
-  const [loading, setLoading] = useState(true);
+function AuthNavigator({ onLogin, onRegister }) {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="SignIn">
+        {props => <LoginScreen {...props} onLogin={onLogin} />}
+      </AuthStack.Screen>
+      <AuthStack.Screen name="Register">
+        {props => <RegisterScreen {...props} onRegister={onRegister} />}
+      </AuthStack.Screen>
+    </AuthStack.Navigator>
+  );
+}
 
-  // on app start try to load token
+function MainNavigator({ onLogout }) {
+  return (
+    <MainStack.Navigator
+      initialRouteName="Generate"
+      screenOptions={{
+        headerStyle: { backgroundColor: '#6ea9ff' },
+        headerTintColor: 'white',
+      }}
+    >
+      <MainStack.Screen
+        name="Generate"
+        component={DonationGeneratorScreen}
+        options={{
+          title: 'New Donation',
+          headerRight: () => <Button title="Logout" color="#fff" onPress={onLogout} />
+        }}
+      />
+      <MainStack.Screen
+        name="Scan"
+        component={ScanDonationScreen}
+        options={{ title: 'Scan Donation QR' }}
+      />
+    </MainStack.Navigator>
+  );
+}
+
+export default function App() {
+  const [userToken, setUserToken] = useState(null);
+  const [loading, setLoading]     = useState(true);
+
+  // Check AsyncStorage for token on app start
   useEffect(() => {
-    (async () => {
-      const saved = await AsyncStorage.getItem('userToken');
-      if (saved) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${saved}`;
-        setToken(saved);
-      }
+    AsyncStorage.getItem('userToken').then(token => {
+      setUserToken(token);
       setLoading(false);
-    })();
+    });
   }, []);
 
-  const handleLogin = async (newToken) => {
-    await AsyncStorage.setItem('userToken', newToken);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-    setToken(newToken);
-  };
-
+  const handleLogin = token => setUserToken(token);
+  const handleRegister = token => setUserToken(token);
   const handleLogout = async () => {
     await AsyncStorage.removeItem('userToken');
-    delete axios.defaults.headers.common['Authorization'];
-    setToken(null);
+    setUserToken(null);
   };
 
   if (loading) {
@@ -55,22 +85,10 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {token == null ? (
-        <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-          <AuthStack.Screen name="Login">
-            {props => <LoginScreen {...props} onLogin={handleLogin} />}
-          </AuthStack.Screen>
-          <AuthStack.Screen name="Register">
-            {props => <RegisterScreen {...props} onLogin={handleLogin} />}
-          </AuthStack.Screen>
-        </AuthStack.Navigator>
-      ) : (
-        <MainStack.Navigator>
-          <MainStack.Screen name="Home">
-            {props => <HomeScreen {...props} onLogout={handleLogout} />}
-          </MainStack.Screen>
-        </MainStack.Navigator>
-      )}
+      {userToken
+        ? <MainNavigator onLogout={handleLogout} />
+        : <AuthNavigator onLogin={handleLogin} onRegister={handleRegister} />
+      }
     </NavigationContainer>
   );
 }
