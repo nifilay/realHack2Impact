@@ -1,0 +1,4 @@
+const qr_schema = require('../models/QR');
+
+const qr_create = async(req, res) => {
+    const {email, donation_id
