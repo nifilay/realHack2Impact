@@ -3,6 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import QR_routes from './routes/qr.js'
 
 dotenv.config(); // loads MONGODB_URI
 
@@ -20,6 +21,13 @@ mongoose.connect(process.env.MONGODB_URI, {
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+//Creating routes to API paths
+const router = express.Router();
+
+app.use('/api/qr', QR_routes);
+
+
 
 // 2) Define a simple Donation model
 const Donation = mongoose.model('Donation', new mongoose.Schema({
