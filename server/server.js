@@ -1,14 +1,14 @@
-// server/server.js
-import express from 'express';
+import express  from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import cors     from 'cors';
+import dotenv   from 'dotenv';
+import authRoutes from './routes/auth.js';
 
-dotenv.config(); // loads MONGODB_URI
+dotenv.config(); // 1) Load .env
 
-// 1) Connect to MongoDB Atlas
+// 2) Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
+  useNewUrlParser:    true,
   useUnifiedTopology: true,
 })
 .then(() => console.log('✅ Mongo connected'))
@@ -17,27 +17,31 @@ mongoose.connect(process.env.MONGODB_URI, {
   process.exit(1);
 });
 
+// 3) Create Express app
 const app = express();
+
+// 4) Middleware
 app.use(cors());
 app.use(express.json());
 
-// 2) Define a simple Donation model
+// 5) Mount auth routes
+app.use('/auth', authRoutes);
+
+// 6) Simple Donation model & endpoint
 const Donation = mongoose.model('Donation', new mongoose.Schema({
-  details: String,
+  details:   String,
   createdAt: { type: Date, default: Date.now },
 }));
-
-// 3) POST /donations → create & return an ID
 app.post('/donations', async (req, res) => {
   const { details } = req.body;
   const doc = await Donation.create({ details });
   res.json({ donationId: doc._id.toString() });
 });
 
-// 4) POST /scan → record a scan
+// 7) Simple Scan model & endpoint
 const Scan = mongoose.model('Scan', new mongoose.Schema({
   donationId: String,
-  scannedAt: { type: Date, default: Date.now },
+  scannedAt:  { type: Date, default: Date.now },
 }));
 app.post('/scan', async (req, res) => {
   const { donationId } = req.body;
@@ -45,6 +49,8 @@ app.post('/scan', async (req, res) => {
   res.sendStatus(204);
 });
 
-// 5) Start server
+// 8) Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 API listening on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 API listening on http://localhost:${PORT}`);
+});
