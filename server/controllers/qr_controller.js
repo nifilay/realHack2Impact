@@ -22,19 +22,18 @@ const qr_scan = async(req, res) => {
 
     const donation = await Donation.findById(donation_id);
 
-    const old_loc_len = donation.locations.length;
+    const old_loc_len = donation.scans.length;
 
-    if(location == donation.locations[old_loc_len - 1]){
+    if(location == donation.scans.[old_loc_len - 1].location){
 	res.status(409).json({error: "request submitted too many times"});
 	return;
     }
 
-    donation.locations.push(location);
-    donation.scanned_dates.push(new Date());
+    donation.scans.push({location, scan_date: new Date() });
 
     await donation.save();
 
-    res.json({locations: donation.locations, dates: donation.scanned_dates});
+    res.json({scans: donation.scans});
 
 
 }

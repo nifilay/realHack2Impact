@@ -2,8 +2,10 @@ import mongoose from 'mongoose';
 
 const donationSchema = new mongoose.Schema({
     email:    { type: String, required: true, unique: true },
-    locations: [{ type: String}],
-    scanned_dates: [{type: Date}],
+    scans: [{
+	location: { type: String, required: true },
+	scan_date: { type: Date, default: Date.now }
+    }],
     createdAt: { type: Date, default: Date.now },
     driver: {type: String, default: null},
     clothing_type: {type: String},
