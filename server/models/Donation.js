@@ -1,29 +1,37 @@
 // server/models/Donation.js
 import mongoose from 'mongoose';
 
-const STATUS_STEPS = [
-  'created',
-  'scanned',
-  'in_transit',
-  'delivered',
-  'archived'
-];
-
-const DonationSchema = new mongoose.Schema({
-  userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  details:     { type: String, required: true },
-  statusIndex: { type: Number, default: 0 },               // which step we’re on
-  status:      { type: String, default: STATUS_STEPS[0] }, // human-readable
+const donationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  details: {
+    type: String,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['created', 'scanned', 'in_transit', 'delivered'],
+    default: 'created',
+  },
+  statusIndex: {
+    type: Number,
+    default: 0,
+  },
   history: [
     {
-      status: { type: String, enum: STATUS_STEPS },
-      at:     { type: Date, default: Date.now }
-    }
+      status: String,
+      city:   String,
+      timestamp: { type: Date, default: Date.now },
+    },
   ],
-  createdAt:   { type: Date, default: Date.now },
-  scannedAt:   Date
+}, {
+  timestamps: true,
 });
 
-DonationSchema.statics.STATUS_STEPS = STATUS_STEPS;
+// (Optional) if you want to reference steps elsewhere
+donationSchema.statics.STATUS_STEPS = ['created','scanned','in_transit','delivered'];
 
-export default mongoose.model('Donation', DonationSchema);
+export default mongoose.model('Donation', donationSchema);

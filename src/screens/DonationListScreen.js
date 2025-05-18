@@ -1,52 +1,105 @@
 // src/screens/DonationListScreen.js
-import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
 import axios from 'axios';
 
-export default function DonationListScreen({ navigation }) {
+export default function DonationListScreen() {
   const [donations, setDonations] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      (async () => {
-        try {
-          const { data } = await axios.get('/donations');
-          if (active) setDonations(data);
-        } catch (e) {
-          console.error(e);
-        }
-      })();
-      return () => { active = false };
-    }, [])
-  );
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get('/donations');
+        if (active) setDonations(data);
+      } catch (err) {
+        if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#6ea9ff" />
+      </View>
+    );
+  }
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.error}>Error: {error}</Text>
+      </View>
+    );
+  }
+  if (donations.length === 0) {
+    return (
+      <View style={styles.centered}>
+        <Text>No donations yet.</Text>
+      </View>
+    );
+  }
 
   return (
-    <FlatList
-      data={donations}
-      keyExtractor={d => d._id}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Generate')} // or wherever
-          style={styles.item}
-        >
-          <Text style={styles.details}>{item.details}</Text>
-          <Text style={styles.status}>Status: {item.status}</Text>
-          <Text style={styles.date}>
-            {new Date(item.createdAt).toLocaleString()}
-          </Text>
-        </TouchableOpacity>
-      )}
-      ListEmptyComponent={<Text style={styles.empty}>No donations yet.</Text>}
-    />
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={donations}
+        keyExtractor={item => item._id}
+        renderItem={({ item }) => {
+          // last history entry:
+          const last = item.history[item.history.length - 1] || {};
+          return (
+            <View style={styles.card}>
+              <Text style={styles.details}>{item.details}</Text>
+              <Text>
+                Current status: <Text style={styles.bold}>{item.status}</Text>
+              </Text>
+              <Text>
+                Last scanned in <Text style={styles.bold}>{last.city || 'n/a'}</Text>{' '}
+                on{' '}
+                <Text style={styles.bold}>
+                  {last.timestamp
+                    ? new Date(last.timestamp).toLocaleString()
+                    : 'n/a'}
+                </Text>
+              </Text>
+              <Text style={styles.historyTitle}>History:</Text>
+              {item.history.map((h, i) => (
+                <Text key={i} style={styles.historyItem}>
+                  {i+1}. {h.status} in {h.city || 'n/a'} on{' '}
+                  {h.timestamp
+                    ? new Date(h.timestamp).toLocaleString()
+                    : 'n/a'}
+                </Text>
+              ))}
+            </View>
+          );
+        }}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  item:    { padding: 16, borderBottomWidth: 1, borderColor: '#eee' },
-  details: { fontSize: 16, fontWeight: '500' },
-  status:  { fontSize: 14, color: '#0066cc', marginTop: 4 },
-  date:    { fontSize: 12, color: '#999', marginTop: 2 },
-  empty:   { padding: 16, textAlign: 'center' },
+  container: { flex:1, backgroundColor:'#f9f9f9' },
+  centered:  { flex:1, justifyContent:'center', alignItems:'center' },
+  error:     { color:'red' },
+  card:      { padding:16, backgroundColor:'#fff', margin:8, borderRadius:8, elevation:2 },
+  details:   { fontSize:16, fontWeight:'500', marginBottom:4 },
+  bold:      { fontWeight:'700' },
+  historyTitle: { marginTop:8, fontWeight:'600' },
+  historyItem:  { fontSize:12, color:'#555' },
 });

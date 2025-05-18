@@ -1,63 +1,120 @@
 // src/screens/ScanDonationScreen.js
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Alert, ActivityIndicator, StyleSheet, SafeAreaView } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  Alert,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 
 export default function ScanDonationScreen({ navigation }) {
-  const [granted, setGranted] = useState(null);
-  const [busy, setBusy]       = useState(false);
+  // 1️⃣ Camera permission hook
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanning,   setScanning]       = useState(false);
 
+  // 2️⃣ Ask on mount
   useEffect(() => {
-    BarCodeScanner.requestPermissionsAsync()
-      .then(({ status }) => setGranted(status === 'granted'));
-  }, []);
+    if (permission === null) return;      // still loading
+    if (!permission.granted) requestPermission();
+  }, [permission]);
 
-  const onScan = useCallback(
-    async ({ data: id }) => {
-      if (busy) return;
-      setBusy(true);
+  // 3️⃣ Handle QR scan and record city
+  const handleBarcode = useCallback(
+    async ({ data: donationId }) => {
+      if (scanning) return;
+      setScanning(true);
+
+      // get location & reverse‐geocode
+      let city = 'unknown';
       try {
-        const { data } = await axios.post(`/donations/${id}/scan`);
-        Alert.alert(
-          'Updated!',
-          `Donation is now “${data.status}” (step ${data.statusIndex + 1})`
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const { coords } = await Location.getCurrentPositionAsync();
+          const [place]   = await Location.reverseGeocodeAsync(coords);
+          city = place.city || place.region || place.country || 'unknown';
+        }
+      } catch {}
+
+      try {
+        const { data: donation } = await axios.post(
+          `/donations/${donationId}/scan`,
+          { city }
         );
+        Alert.alert(
+          '✅ Status Updated',
+          `Stage ${donation.statusIndex + 1}: ${donation.status}\nIn ${city}`
+        );
+      } catch (err) {
+        Alert.alert('Error', err.response?.data?.error || err.message);
         navigation.goBack();
-      } catch (e) {
-        Alert.alert('Error', e.response?.data?.error || e.message);
       } finally {
-        setBusy(false);
+        // 10s cooldown before scanning again
+        setTimeout(() => setScanning(false), 10000);
       }
     },
-    [busy, navigation]
+    [scanning, navigation]
   );
 
-  if (granted === null) {
-    return <ActivityIndicator style={styles.center} />;
+  // 4️⃣ Loading / denied UI
+  if (permission === null) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#6ea9ff" />
+        <Text style={{ marginTop: 8 }}>Checking camera permission…</Text>
+      </View>
+    );
   }
-  if (!granted) {
-    return <Text style={styles.center}>Camera access denied</Text>;
+  if (!permission.granted) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.notice}>
+          Camera permission is required to scan QR codes.
+        </Text>
+        <TouchableOpacity style={styles.button} onPress={requestPermission}>
+          <Text style={styles.buttonText}>Grant Permission</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
+  // 5️⃣ Main scanner UI
   return (
     <SafeAreaView style={styles.container}>
-      <BarCodeScanner onBarCodeScanned={onScan} style={StyleSheet.absoluteFill} />
-      <Text style={styles.hint}>Point at QR code</Text>
+      <CameraView
+        style={StyleSheet.absoluteFill}
+        facing="back"
+        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+        onBarcodeScanned={handleBarcode}
+      />
+
+      <TouchableOpacity
+        style={styles.back}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={28} color="#fff" />
+      </TouchableOpacity>
+
+      <View style={styles.hintBox}>
+        <Text style={styles.hint}>Point at QR code to advance status</Text>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex:1 },
-  center:    { flex:1, textAlign:'center', marginTop:20 },
-  hint:      {
-    position:'absolute',
-    bottom:40,
-    alignSelf:'center',
-    padding:8,
-    backgroundColor:'#0008',
-    color:'#fff',
-    borderRadius:4
-  }
+  container: { flex:1, backgroundColor:'#000' },
+  centered:  { flex:1, justifyContent:'center', alignItems:'center', padding:20 },
+  notice:    { textAlign:'center', fontSize:16, marginBottom:20, color:'#555' },
+  button:    { padding:12, backgroundColor:'#6ea9ff', borderRadius:8 },
+  buttonText:{ color:'#fff', fontSize:16 },
+  back:      { position:'absolute', top:40, left:20, zIndex:10 },
+  hintBox:   { position:'absolute', bottom:50, left:0, right:0, alignItems:'center' },
+  hint:      { color:'#fff', fontSize:16 },
 });
