@@ -1,4 +1,4 @@
-const Donation = require('../models/Donation');
+import Donation from '../models/Donation.js';
 
 
 const qr_create = async(req, res) => {
@@ -24,4 +24,4 @@ const qr_scan = async(req, res) => {
 
 }
 
-module.exports = {qr_create, qr_scan}
+export { qr_create, qr_scan };
