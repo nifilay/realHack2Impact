@@ -10,8 +10,10 @@ const router = express.Router();
 // register
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
+
   const hash = await bcrypt.hash(password, 10);
-  const user = await User.create({ email, password });
+  const user = await User.create({ email, password: hash }); // ✅ use hash
+
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
   res.json({ token });
 });

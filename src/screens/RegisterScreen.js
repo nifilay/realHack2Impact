@@ -30,7 +30,7 @@ export default function RegisterScreen({ navigation, onRegister }) {
     }
     try {
       setLoading(true);
-      const res = await axios.post(`${API}/auth/register`, { email, password });
+      const res = await axios.post(`/auth/register`, { email, password });
       const { token } = res.data;
       await AsyncStorage.setItem('userToken', token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;

@@ -21,7 +21,7 @@ const MainStack = createNativeStackNavigator();
 // 1) Configure Axios
 const host = Platform.OS === 'android'
   ? '10.0.2.2'             // Android emulator
-  : '172.23.64.18';      // your Mac’s IP
+  : '172.20.10.2';      // your Mac’s IP
 axios.defaults.baseURL = `http://${host}:3000/api`;
 
 function AuthNavigator({ onLogin, onRegister }) {

@@ -24,10 +24,10 @@ const app = express();
 // 4) Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/qr', qrRoutes);
+app.use('/api/qr', qrRoutes);
 
 // 5) Mount auth routes
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // 6) Start server
 const PORT = process.env.PORT || 3000;
