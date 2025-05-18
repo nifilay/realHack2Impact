@@ -13,6 +13,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "infoPlist": {
+        "NSCameraUsageDescription": "We need camera access to scan donation QR codes"
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.Hack2ImpactExpo"
     },
@@ -31,6 +34,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-camera",
       "expo-barcode-scanner"
     ]
   }
