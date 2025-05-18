@@ -3,30 +3,30 @@
 import React, { useState } from 'react';
 import {
   SafeAreaView,
+  ScrollView,
   View,
   Text,
   TextInput,
   TouchableOpacity,
   Alert,
   StyleSheet,
-  useWindowDimensions,
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API } from '../../App'; // adjust path if needed
+import { API } from '../../App';
 
 export default function RegisterScreen({ navigation, onRegister }) {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading]   = useState(false);
-  const { width } = useWindowDimensions();
-  const isSmall = width < 350;
+  const [emailFocused, setEmailFocused]       = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const register = async () => {
-    if (!email || !password) {
-      return Alert.alert('Please enter both email and password');
+    if (!email.trim() || !password.trim()) {
+      return Alert.alert('Validation', 'Please enter both email and password.');
     }
     try {
       setLoading(true);
@@ -36,10 +36,7 @@ export default function RegisterScreen({ navigation, onRegister }) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       onRegister(token);
     } catch (err) {
-      Alert.alert(
-        'Registration failed',
-        err.response?.data?.error || err.message
-      );
+      Alert.alert('Registration failed', err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
     }
@@ -47,109 +44,155 @@ export default function RegisterScreen({ navigation, onRegister }) {
 
   return (
     <LinearGradient
-      colors={['#ffd6e8', '#d6c8ff']}
+      colors={['#fffdf9', '#f3f1ee']}
       start={[0, 0]}
       end={[1, 1]}
       style={styles.background}
     >
+      {/* subtle background circles */}
+      <View style={styles.circleTop} />
+      <View style={styles.circleBottom} />
+
       <SafeAreaView style={styles.safe}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.header}>Create Account</Text>
-          <Text style={styles.subheader}>
-            Join us and make a difference!
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          {/* Email Input */}
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="#999"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          {/* Password Input */}
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#999"
-            secureTextEntry
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          {/* Sign Up Button */}
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={register}
-            disabled={loading}
-          >
-            <LinearGradient
-              colors={loading ? ['#cccccc','#aaaaaa'] : ['#89f7fe','#66a6ff']}
-              start={[0, 0]}
-              end={[1, 1]}
-              style={styles.buttonGradient}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Signing Up…' : 'Sign Up'}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Already have an account */}
-          <View style={styles.links}>
-            <Text style={styles.linkText}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Text style={styles.linkAction}>Sign In</Text>
-            </TouchableOpacity>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.header}>Create Account</Text>
+            <Text style={styles.subheader}>Join us and make a difference!</Text>
           </View>
-        </View>
 
-        {/* Footer */}
-        <TouchableOpacity onPress={() => navigation.navigate('Generate')}>
-          <Text style={styles.footerLink}>Skip and explore</Text>
-        </TouchableOpacity>
+          {/* Card */}
+          <View style={styles.card}>
+            {/* Email */}
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#999"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={[
+                styles.input,
+                emailFocused && styles.inputFocused,
+              ]}
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => setEmailFocused(true)}
+              onBlur={() => setEmailFocused(false)}
+            />
+
+            {/* Password */}
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#999"
+              secureTextEntry
+              style={[
+                styles.input,
+                passwordFocused && styles.inputFocused,
+              ]}
+              value={password}
+              onChangeText={setPassword}
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
+            />
+
+            {/* Sign Up */}
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={register}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={loading ? ['#cccccc', '#aaaaaa'] : ['#89f7fe', '#66a6ff']}
+                start={[0, 0]}
+                end={[1, 1]}
+                style={styles.buttonGradient}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? 'Signing Up…' : 'Sign Up'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Sign In link */}
+            <View style={styles.links}>
+              <Text style={styles.linkText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={styles.linkAction}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Skip link */}
+          <TouchableOpacity onPress={() => navigation.navigate('Generate')} style={styles.footerLinkWrap}>
+            <Text style={styles.footerLinkText}>Skip and explore</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
+const CIRCLE_SMALL = 200;
+const CIRCLE_LARGE = 300;
+
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    position: 'relative',
   },
   safe: {
     flex: 1,
-    justifyContent: 'space-between',
     paddingTop: Platform.OS === 'android' ? 32 : 0,
     paddingHorizontal: 20,
-    paddingBottom: 24,
+  },
+  scroll: {
+    paddingBottom: 40,
+    alignItems: 'center',
+  },
+  circleTop: {
+    position: 'absolute',
+    width: CIRCLE_SMALL,
+    height: CIRCLE_SMALL,
+    backgroundColor: '#89f7fe33',
+    borderRadius: CIRCLE_SMALL / 2,
+    top: -CIRCLE_SMALL * 0.4,
+    left: -CIRCLE_SMALL * 0.4,
+  },
+  circleBottom: {
+    position: 'absolute',
+    width: CIRCLE_LARGE,
+    height: CIRCLE_LARGE,
+    backgroundColor: '#66a6ff22',
+    borderRadius: CIRCLE_LARGE / 2,
+    bottom: -CIRCLE_LARGE * 0.4,
+    right: -CIRCLE_LARGE * 0.3,
   },
   headerContainer: {
-    marginTop: 24,
+    marginTop: 40,
     alignItems: 'center',
+    marginBottom: 32,
   },
   header: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#222',
+    color: '#66a6ff',
   },
   subheader: {
     fontSize: 16,
-    color: '#555',
-    marginTop: 4,
+    color: '#89f7fe',
+    marginTop: 6,
   },
   card: {
     width: '100%',
     maxWidth: 380,
     backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
+    borderRadius: 40,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
     // iOS shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
@@ -167,12 +210,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     color: '#333',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  inputFocused: {
+    borderColor: '#66a6ff',
   },
   button: {
     width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
-    marginBottom: 16,
+    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -185,25 +233,28 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
   links: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    marginTop: 12,
   },
   linkText: {
-    color: '#777',
-    marginRight: 6,
+    color: '#555',
     fontSize: 15,
   },
   linkAction: {
     color: '#66a6ff',
     fontSize: 15,
     fontWeight: '600',
+    marginLeft: 6,
   },
-  footerLink: {
-    textAlign: 'center',
-    color: '#999',
-    textDecorationLine: 'underline',
+  footerLinkWrap: {
+    marginTop: 16,
+  },
+  footerLinkText: {
+    color: '#66a6ff',
     fontSize: 14,
+    textDecorationLine: 'underline',
   },
 });

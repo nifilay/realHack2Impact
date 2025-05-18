@@ -1,36 +1,29 @@
 // server/routes/auth.js
-import express from 'express';
-import bcrypt  from 'bcrypt';
-import jwt     from 'jsonwebtoken';
-import User    from '../models/User.js';
+import express  from 'express';
+import jwt      from 'jsonwebtoken';
+import bcrypt   from 'bcryptjs';
+import User     from '../models/User.js';
+import 'dotenv/config';
+
 const router = express.Router();
 
-// 1) Register
+// register
 router.post('/register', async (req, res) => {
   const { email, password } = req.body;
-  try {
-    const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, password: hash });
-    // Issue a JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.status(201).json({ token, email: user.email });
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.status(400).json({ error: 'Email already in use' });
-    }
-    res.status(500).json({ error: err.message });
-  }
+  const hash = await bcrypt.hash(password, 10);
+  const user = await User.create({ email, password: hash });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  res.json({ token });
 });
 
-// 2) Login
+// login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, email: user.email });
+  if (!user || !(await bcrypt.compare(password, user.password)))
+    return res.status(401).json({ error: 'Invalid creds' });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+  res.json({ token });
 });
 
 export default router;

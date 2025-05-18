@@ -1,118 +1,97 @@
 // src/screens/ScanDonationScreen.js
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
+  SafeAreaView,
+  TouchableOpacity,
+  ActivityIndicator,
   Alert,
   StyleSheet,
   Platform,
-  TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 
-const CIRCLE_SIZE = 200;
-
 export default function ScanDonationScreen({ navigation }) {
-  // On web, show notice
-  if (Platform.OS === 'web') {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.webNotice}>
-          QR scanning is only supported on iOS & Android.
-        </Text>
-      </View>
-    );
-  }
-
-  const [hasPermission, setHasPermission] = useState(null);
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanning, setScanning] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  const handleScan = useCallback(
+  const handleBarCodeScanned = useCallback(
     async ({ data }) => {
       if (scanning) return;
       setScanning(true);
       try {
-        await axios.post('https://your-api.com/scan', { donationId: data });
+        await axios.post(`/donations/${data}/scan`);
         Alert.alert('Success', 'Donation logged!');
+        navigation.navigate('Donations');
       } catch (err) {
-        Alert.alert('Error', err.message);
+        Alert.alert('Error', err.response?.data?.error || err.message);
       } finally {
         setScanning(false);
       }
     },
-    [scanning]
+    [scanning, navigation]
   );
 
-  if (hasPermission === null) {
+  if (Platform.OS === 'web') {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#66a6ff" />
-        <Text style={styles.loadingText}>Requesting camera permission…</Text>
+        <Text style={styles.notice}>QR scanning only works on device.</Text>
       </View>
     );
   }
-  if (hasPermission === false) {
+  if (!permission) {
     return (
       <View style={styles.centered}>
-        <Ionicons name="camera-off-outline" size={48} color="#aaa" />
+        <ActivityIndicator size="large" color="#66a6ff" />
+        <Text style={styles.loadingText}>Loading permissions…</Text>
+      </View>
+    );
+  }
+  if (!permission.granted) {
+    return (
+      <View style={styles.centered}>
         <Text style={styles.loadingText}>
-          No camera access. Please enable it in settings.
+          We need camera access to scan QR codes
         </Text>
+        <TouchableOpacity
+          style={styles.permButton}
+          onPress={requestPermission}
+        >
+          <Text style={styles.permButtonText}>Grant Permission</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Decorative Circles */}
-      <View style={styles.decorTop} />
-      <View style={styles.decorBottom} />
-
-      {/* Semi-transparent overlay */}
-      <LinearGradient
-        colors={['rgba(255,255,255,0.9)', 'rgba(243,241,238,0.9)']}
-        style={StyleSheet.absoluteFill}
-        start={[0, 0]}
-        end={[1, 1]}
-      />
-
       <SafeAreaView style={styles.safe}>
-        {/* Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={28} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Scan Donation</Text>
-          <View style={{ width: 28 }} /> {/* placeholder for spacing */}
+          <Text style={styles.title}>Scan Donation QR</Text>
+          <View style={{ width: 28 }} />
         </View>
 
-        {/* Scanner View */}
-        <View style={styles.scannerContainer}>
-          <BarCodeScanner
-            onBarCodeScanned={handleScan}
+        <View style={styles.cameraWrapper}>
+          <CameraView
             style={StyleSheet.absoluteFillObject}
+            barcodeScannerSettings={{
+              // use the literal string "qr"
+              barcodeTypes: ['qr'],
+            }}
+            onBarcodeScanned={handleBarCodeScanned}
           />
-
-          {/* Framing Overlay */}
-          <View style={styles.overlay}>
-            <View style={styles.scanFrame} />
-            <Text style={styles.overlayText}>
-              Point camera at the QR code
-            </Text>
-          </View>
+          {scanning && (
+            <View style={styles.overlay}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          )}
         </View>
       </SafeAreaView>
     </View>
@@ -120,96 +99,37 @@ export default function ScanDonationScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
+  container:     { flex:1, backgroundColor:'#F5F7FA' },
+  safe:          { flex:1 },
+  centered:      { flex:1,justifyContent:'center',alignItems:'center',padding:20 },
+  notice:        { fontSize:16, color:'#555', textAlign:'center' },
+  loadingText:   { marginTop:12, fontSize:16, color:'#555', textAlign:'center' },
+  permButton:    { marginTop:20, padding:12, backgroundColor:'#66a6ff', borderRadius:8 },
+  permButtonText:{ color:'#fff', fontWeight:'600' },
+
+  header:        {
+    flexDirection:'row',
+    alignItems:'center',
+    justifyContent:'space-between',
+    padding:20,
   },
-  safe: {
-    flex: 1,
+  title:         { fontSize:20, fontWeight:'700', color:'#333' },
+
+  cameraWrapper: {
+    flex:1,
+    margin:20,
+    borderRadius:24,
+    overflow:'hidden',
+    shadowColor:'#000',
+    shadowOffset:{ width:0, height:6 },
+    shadowOpacity:0.1,
+    shadowRadius:16,
+    elevation:8,
   },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  webNotice: {
-    fontSize: 16,
-    color: '#555',
-    textAlign: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#555',
-    textAlign: 'center',
-  },
-  // Decorative circles
-  decorTop: {
-    position: 'absolute',
-    top: -CIRCLE_SIZE / 2,
-    left: -CIRCLE_SIZE / 3,
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    borderRadius: CIRCLE_SIZE / 2,
-    backgroundColor: '#66a6ff33',
-  },
-  decorBottom: {
-    position: 'absolute',
-    bottom: -CIRCLE_SIZE / 2,
-    right: -CIRCLE_SIZE / 4,
-    width: CIRCLE_SIZE * 1.2,
-    height: CIRCLE_SIZE * 1.2,
-    borderRadius: (CIRCLE_SIZE * 1.2) / 2,
-    backgroundColor: '#89f7fe33',
-  },
-  // Header
-  header: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-  },
-  // Scanner
-  scannerContainer: {
-    flex: 1,
-    margin: 20,
-    borderRadius: 24,
-    overflow: 'hidden',
-    // shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    // elevation for Android
-    elevation: 8,
-  },
-  overlay: {
+  overlay:       {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanFrame: {
-    width: '70%',
-    aspectRatio: 1,
-    borderWidth: 4,
-    borderColor: 'rgba(255,255,255,0.8)',
-    borderRadius: 16,
-    marginBottom: 20,
-  },
-  overlayText: {
-    color: '#fff',
-    fontSize: 16,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    overflow: 'hidden',
+    backgroundColor:'rgba(0,0,0,0.5)',
+    justifyContent:'center',
+    alignItems:'center',
   },
 });
