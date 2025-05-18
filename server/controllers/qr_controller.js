@@ -1,4 +1,5 @@
 import Donation from '../models/Donation.js';
+import QRCode from 'qrcode'
 
 
 const qr_create = async(req, res) => {
@@ -19,7 +20,21 @@ const qr_create = async(req, res) => {
 const qr_scan = async(req, res) => {
     const {donation_id, location} = req.body;
 
-    const donation = qr_schema.findOne({donation_id: donation_id});
+    const donation = await Donation.findById(donation_id);
+
+    let old_locations = donation.locations;
+    const old_loc_len = old_locations.length;
+
+    if(location == old_locations[old_locations.length - 1]){
+	res.status(409).json({error: "request submitted too many times"});
+	return;
+    }
+
+    old_locations.push(location);
+    const new_locations = old_locations;
+
+    await Donation.findByIdAndUpdate(donation._id, {locations: new_locations});
+    res.json({locations: new_locations});
 
 
 }
