@@ -1,13 +1,18 @@
-const qr_schema = require('../models/QR');
+const Donation = require('../models/Donation');
 
 
 const qr_create = async(req, res) => {
-    const {donation_id} = req.body;
+    const {email, clothing_type} = req.body;
 
-    const payload = JSON.stringify({donation_id});
+    const new_donation = await Donation.create({email, clothing_type});
+    const new_don_id = new_donation._id;
+    
+    const payload = JSON.stringify({new_don_id});
 
     const qr_data_url = await QRCode.toDataURL(payload);
     res.json({ qrCode: qr_data_url });
+
+    await Donation.findByIdAndUpdate(new_don_id, {qr_code_url: qr_data_url});
 }
 
 
