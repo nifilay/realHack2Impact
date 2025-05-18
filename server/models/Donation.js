@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const donationSchema = new mongoose.Schema({
     email:    { type: String, required: true, unique: true },
     locations: [{ type: String}],
+    scanned_dates: [{type: Date}],
     createdAt: { type: Date, default: Date.now },
     driver: {type: String, default: null},
     clothing_type: {type: String},
