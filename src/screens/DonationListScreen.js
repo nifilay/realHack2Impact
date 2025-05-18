@@ -1,90 +1,52 @@
 // src/screens/DonationListScreen.js
-
 import React, { useState, useCallback } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  FlatList,
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-} from 'react-native';
-import axios from 'axios';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import axios from 'axios';
 
-export default function DonationListScreen() {
+export default function DonationListScreen({ navigation }) {
   const [donations, setDonations] = useState([]);
-  const [loading, setLoading]     = useState(true);
 
-  const fetchDonations = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get('/donations');
-      setDonations(res.data);
-    } catch (err) {
-      Alert.alert('Error', 'Could not load donations.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // re-fetch whenever the screen comes into focus
-  useFocusEffect(fetchDonations);
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#6ea9ff" />
-      </View>
-    );
-  }
-
-  if (donations.length === 0) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <Text style={styles.empty}>You haven’t made any donations yet.</Text>
-      </SafeAreaView>
-    );
-  }
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      (async () => {
+        try {
+          const { data } = await axios.get('/donations');
+          if (active) setDonations(data);
+        } catch (e) {
+          console.error(e);
+        }
+      })();
+      return () => { active = false };
+    }, [])
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={donations}
-        keyExtractor={item => item._id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.details}>{item.details}</Text>
-            <Text style={styles.meta}>
-              Status: <Text style={styles.status}>{item.status || 'pending'}</Text>
-            </Text>
-            <Text style={styles.meta}>
-              Created: {new Date(item.createdAt).toLocaleString()}
-            </Text>
-          </View>
-        )}
-      />
-    </SafeAreaView>
+    <FlatList
+      data={donations}
+      keyExtractor={d => d._id}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Generate')} // or wherever
+          style={styles.item}
+        >
+          <Text style={styles.details}>{item.details}</Text>
+          <Text style={styles.status}>Status: {item.status}</Text>
+          <Text style={styles.date}>
+            {new Date(item.createdAt).toLocaleString()}
+          </Text>
+        </TouchableOpacity>
+      )}
+      ListEmptyComponent={<Text style={styles.empty}>No donations yet.</Text>}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex:1, backgroundColor:'#fff', padding:16 },
-  center:    { flex:1, justifyContent:'center', alignItems:'center', padding:16 },
-  empty:     { color:'#555', fontSize:16 },
-  card:      {
-    backgroundColor:'#f9f9f9',
-    borderRadius:8,
-    padding:16,
-    marginBottom:12,
-    shadowColor:'#000',
-    shadowOffset:{width:0,height:2},
-    shadowOpacity:0.05,
-    shadowRadius:4,
-    elevation:2,
-  },
-  details:  { fontSize:16, marginBottom:4, color:'#333' },
-  meta:     { fontSize:14, color:'#666' },
-  status:   { fontWeight:'600', color:'#66a6ff' },
+  item:    { padding: 16, borderBottomWidth: 1, borderColor: '#eee' },
+  details: { fontSize: 16, fontWeight: '500' },
+  status:  { fontSize: 14, color: '#0066cc', marginTop: 4 },
+  date:    { fontSize: 12, color: '#999', marginTop: 2 },
+  empty:   { padding: 16, textAlign: 'center' },
 });
