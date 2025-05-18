@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Tracking({ style }) {
-  const locations = ['Santa Monica Warehouse', 'Sorting Center', 'In Transit', 'Delivery Van', 'Delivered', 'Customer'];
+  const locations = ['Santa Monica Warehouse', 'Sorting Center', 'In Transit', 'Delivered'];
   const StartDate = new Date('2025-05-10T08:00:00');
   const CurrentDate = new Date('2025-05-13T14:00:00');
 
@@ -15,7 +15,7 @@ export default function Tracking({ style }) {
   }));
   const currentIndex = data.length - 1;
 
-  // Dynamic sizing based on parent container
+  // Dynamic sizing
   const { width } = Dimensions.get('window');
   const circleSize = Math.min(50, (width - 32) / (data.length * 1.2));
   const lineHeight = circleSize / 3;
@@ -37,15 +37,17 @@ export default function Tracking({ style }) {
       alignItems: 'center',
     },
     circle: {
-      width: circleSize/1.3,
-      height: circleSize/1.3,
+      width: circleSize / 1.3,
+      height: circleSize / 1.3,
       borderRadius: circleSize / 2,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     labelWrapper: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      height: circleSize * 1,
+      height: circleSize,
     },
     titleText: {
       fontSize: circleSize * 0.25,
@@ -58,8 +60,11 @@ export default function Tracking({ style }) {
   });
 
   return (
-    <View style={[styles.container, style]}>  {/* allow parent styling */}
+    <View style={[styles.container, style]}>
+      {/* progress line */}
       <View style={dynamicStyles.progressLine} />
+
+      {/* circles / checkmarks */}
       <View style={styles.row}>
         {data.map((item, idx) => {
           const isCompleted = idx < currentIndex;
@@ -92,6 +97,7 @@ export default function Tracking({ style }) {
         })}
       </View>
 
+      {/* location labels */}
       <View style={styles.row}>
         {data.map((item, idx) => (
           <View key={idx} style={dynamicStyles.labelWrapper}>
@@ -108,6 +114,7 @@ export default function Tracking({ style }) {
         ))}
       </View>
 
+      {/* dates */}
       <View style={styles.row}>
         {data.map((item, idx) => (
           <View key={idx} style={dynamicStyles.labelWrapper}>
@@ -142,8 +149,6 @@ const styles = StyleSheet.create({
   },
   circleBase: {
     backgroundColor: '#eee',
-    justifyContent: 'center',
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
