@@ -1,18 +1,22 @@
-// server/routes/auth.js
 import express from 'express';
-import bcrypt  from 'bcrypt';
-import jwt     from 'jsonwebtoken';
-import User    from '../models/User.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import Employee from '../models/Employee.js';
+
 const router = express.Router();
 
-// 1) Register
-router.post('/register', async (req, res) => {
+// 🔐 Helper to issue JWT
+const issueToken = (id, role) =>
+  jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+// ✅ Shared register logic
+const register = async (Model, req, res) => {
   const { email, password } = req.body;
   try {
     const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, password: hash });
-    // Issue a JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const user = await Model.create({ email, password: hash });
+    const token = issueToken(user._id, Model.modelName); // Tag token with role
     res.status(201).json({ token, email: user.email });
   } catch (err) {
     if (err.code === 11000) {
@@ -20,17 +24,25 @@ router.post('/register', async (req, res) => {
     }
     res.status(500).json({ error: err.message });
   }
-});
+};
 
-// 2) Login
-router.post('/login', async (req, res) => {
+// ✅ Shared login logic
+const login = async (Model, req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const user = await Model.findOne({ email });
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const token = issueToken(user._id, Model.modelName);
   res.json({ token, email: user.email });
-});
+};
+
+// 👤 User Routes
+router.post('/register/user', (req, res) => register(User, req, res));
+router.post('/login/user', (req, res) => login(User, req, res));
+
+// 👨‍💼 Employee Routes
+router.post('/register/employee', (req, res) => register(Employee, req, res));
+router.post('/login/employee', (req, res) => login(Employee, req, res));
 
 export default router;
