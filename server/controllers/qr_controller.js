@@ -24,7 +24,7 @@ const qr_scan = async(req, res) => {
 
     const old_loc_len = donation.scans.length;
 
-    if(location == donation.scans.[old_loc_len - 1].location){
+    if(location == donation.scans[old_loc_len - 1].location){
 	res.status(409).json({error: "request submitted too many times"});
 	return;
     }
