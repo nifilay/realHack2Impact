@@ -18,3 +18,5 @@ const qr_scan = async(req, res) => {
 
 
 }
+
+module.exports = {qr_create, qr_scan}
