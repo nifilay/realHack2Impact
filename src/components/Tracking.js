@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function Tracking({ style }) {
-  const locations = ['Santa Monica Warehouse', 'Sorting Center', 'In Transit', 'Delivery Van', 'Delivered'];
+  const locations = ['Santa Monica Warehouse', 'Sorting Center', 'In Transit', 'Delivery Van', 'Delivered', 'Customer'];
   const StartDate = new Date('2025-05-10T08:00:00');
   const CurrentDate = new Date('2025-05-13T14:00:00');
 
@@ -25,9 +25,9 @@ export default function Tracking({ style }) {
   const dynamicStyles = StyleSheet.create({
     progressLine: {
       position: 'absolute',
-      top: circleSize / 2 + 24,
-      left: 0,
-      right: 0,
+      top: circleSize / 2 + 10,
+      width: '80%',
+      alignSelf: 'center',
       height: lineHeight,
       backgroundColor: '#007aff77',
       borderRadius: lineHeight / 2,
@@ -37,15 +37,15 @@ export default function Tracking({ style }) {
       alignItems: 'center',
     },
     circle: {
-      width: circleSize,
-      height: circleSize,
+      width: circleSize/1.3,
+      height: circleSize/1.3,
       borderRadius: circleSize / 2,
     },
     labelWrapper: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      height: circleSize * 1.2,
+      height: circleSize * 1,
     },
     titleText: {
       fontSize: circleSize * 0.25,
