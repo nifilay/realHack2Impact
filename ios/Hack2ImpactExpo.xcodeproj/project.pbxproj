@@ -9,12 +9,12 @@
 /* Begin PBXBuildFile section */
 		03641C80F74061841BF29CE2 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E977AE85AAF1F06CF3CFA27 /* ExpoModulesProvider.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		315643DA30F04AA882633450 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7189378FB254ED8AC56D449 /* noop-file.swift */; };
 		375C3B322F6838BCFF79056E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AF36CBA3FD73E7BAE6EEDC91 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		97BAA8FAD4CD50E4FBCCE6E5 /* libPods-Hack2ImpactExpo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E71AF79F0DAD5C3D56CE8214 /* libPods-Hack2ImpactExpo.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		315643DA30F04AA882633450 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7189378FB254ED8AC56D449 /* noop-file.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,7 +31,7 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Hack2ImpactExpo/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* Hack2ImpactExpo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Hack2ImpactExpo-Bridging-Header.h"; path = "Hack2ImpactExpo/Hack2ImpactExpo-Bridging-Header.h"; sourceTree = "<group>"; };
-		F7189378FB254ED8AC56D449 /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "Hack2ImpactExpo/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		F7189378FB254ED8AC56D449 /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "Hack2ImpactExpo/noop-file.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -357,7 +357,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.Hack2ImpactExpo;
-				PRODUCT_NAME = "Hack2ImpactExpo";
+				PRODUCT_NAME = Hack2ImpactExpo;
 				SWIFT_OBJC_BRIDGING_HEADER = "Hack2ImpactExpo/Hack2ImpactExpo-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -388,7 +388,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.Hack2ImpactExpo;
-				PRODUCT_NAME = "Hack2ImpactExpo";
+				PRODUCT_NAME = Hack2ImpactExpo;
 				SWIFT_OBJC_BRIDGING_HEADER = "Hack2ImpactExpo/Hack2ImpactExpo-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

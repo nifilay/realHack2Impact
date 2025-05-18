@@ -21,7 +21,7 @@ const MainStack = createNativeStackNavigator();
 // 1) Configure Axios
 const host = Platform.OS === 'android'
   ? '10.0.2.2'             // Android emulator
-  : '172.23.105.248';      // your Mac’s IP
+  : '172.23.64.18';      // your Mac’s IP
 axios.defaults.baseURL = `http://${host}:3000/api`;
 
 function AuthNavigator({ onLogin, onRegister }) {
@@ -39,6 +39,12 @@ function AuthNavigator({ onLogin, onRegister }) {
         component={ScanDonationScreen}
         options={{ headerShown: true, title: 'Scan Donation QR' }}
       />
+      <AuthStack.Screen
+        name="Generate"
+        component={DonationGeneratorScreen}
+        options={{ headerShown: true, title: 'Explore' }}
+      />
+
     </AuthStack.Navigator>
   );
 }
